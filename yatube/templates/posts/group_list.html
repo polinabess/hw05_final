@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block header %}<h1>{{ group.title }}</h1>{% endblock %}
+{% block content %}
+  <!-- класс py-5 создает отступы сверху и снизу блока -->
+  <div class="container py-5">
+    <p>{{ group.description }}</p>
+    <p>
+      {#Группа тайных поклонников графа.#}
+      {{ group.title }}
+    </p>
+    <article>
+      {% for post in page_obj %}
+        {% include 'includes/post_detail.html' %}     
+        {% if not forloop.last %}<hr>{% endif %}
+      {% endfor %}
+    </article>
+    <!-- под последним постом нет линии -->  
+    {% include 'posts/includes/paginator.html' %}
+  </div>
+{% endblock %}

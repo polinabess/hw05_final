@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}
+  Подписки на авторов
+{% endblock %}
+{% load cache %}
+{% cache 20 index_page with page_obj %}
+{% block content %}
+  {% include 'posts/includes/switcher.html' %}
+  <!-- класс py-5 создает отступы сверху и снизу блока -->
+  <div class="container py-5">    
+    <h1>{{ text }}</h1>
+    <article>
+      {% for post in page_obj %}
+      {% include 'includes/post_detail.html' %}
+      <p>
+        <a href="{% url 'posts:post_detail' post.pk %}">подробная информация </a>
+      </p>  
+      {% if post.group %}   
+        <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
+      {% endif %}
+      {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+    </article>
+    <!-- под последним постом нет линии -->
+    {% include 'posts/includes/paginator.html' %}
+  </div>
+{% endblock %}
+{% endcache %}
