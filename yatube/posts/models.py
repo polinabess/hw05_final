@@ -64,7 +64,7 @@ class Comment(CreatedModel):
         verbose_name='Автор комментария',
         help_text='Добавте автора комментария'
     )
-    text = models.CharField(max_length=400, verbose_name='Текст комментария')
+    text = models.TextField(max_length=400, verbose_name='Текст комментария')
 
 
 class Follow(models.Model):

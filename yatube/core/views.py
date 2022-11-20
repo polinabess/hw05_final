@@ -16,7 +16,7 @@ def csrf_failure(request, reason=''):
     return render(request, 'core/403csrf.html')
 
 
-def server_error(request, exception):
+def server_error(request):
     return render(
         request,
         'core/500.html',
