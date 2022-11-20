@@ -194,4 +194,3 @@ class PostURLTests(TestCase):
         )
         first_object = len(response.context['page_obj'])
         self.assertEqual(first_object, 0)
-
