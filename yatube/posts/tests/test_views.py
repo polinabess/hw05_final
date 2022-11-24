@@ -8,7 +8,7 @@ from django.urls import reverse
 from django import forms
 from django.conf import settings
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -185,7 +185,7 @@ class PostURLTests(TestCase):
         self.assertTrue(context_post.image)
 
     def test_post_not_in_group(self):
-        """Пост не попадает в другую группу"""
+        """Пост не попадает в другую группу."""
         response = self.authorized_author.get(
             reverse(
                 'posts:group_list',
@@ -194,3 +194,31 @@ class PostURLTests(TestCase):
         )
         first_object = len(response.context['page_obj'])
         self.assertEqual(first_object, 0)
+
+    def test_profile_follow(self):
+        """Подписка на автора осуществляется успешно."""
+        follower_cnt = Follow.objects.count()
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.post.author}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), follower_cnt + 1)
+
+    def test_profile_unfollow(self):
+        """Отписка на автора осуществляется успешно."""
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.post.author}
+            )
+        )
+        follower_cnt = Follow.objects.count()
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.post.author}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), follower_cnt - 1)

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 # Из модуля models импортируем модель Post
-from .models import Post, Group, Comment
+from .models import Post, Group, Comment, Follow
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -44,8 +44,18 @@ class CommentAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'author'
+    )
+    list_filter = ('author',)
+    empty_value_display = '-пусто-'
+
+
 # При регистрации модели Post источником конфигурации для неё назначаем
 # класс PostAdmin
 admin.site.register(Post, PostAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Comment, CommentAdmin)
+admin.site.register(Follow, FollowAdmin)

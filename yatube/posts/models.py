@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from core.models import CreatedModel
+from django.db.models import UniqueConstraint
 
 User = get_user_model()
 
@@ -29,7 +30,8 @@ class Post(CreatedModel):
     image = models.ImageField(
         'Картинка',
         upload_to='posts/',
-        blank=True
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -82,3 +84,8 @@ class Follow(models.Model):
         verbose_name='Автор',
         help_text='Ссылка на объект пользователя, на которого подписываются'
     )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['author', 'user'], name='unique_follower')
+        ]

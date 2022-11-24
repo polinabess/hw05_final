@@ -134,7 +134,6 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
     user = request.user
     post_list = Post.objects.filter(author__following__user=user)
     page_obj = pagination(request, post_list)
@@ -144,7 +143,6 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    # Подписаться на автора
     author = get_object_or_404(User, username=username)
     user = request.user
     following = Follow.objects.filter(user=user, author=author)
@@ -155,7 +153,6 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    # Дизлайк, отписка
     author = get_object_or_404(User, username=username)
     user = request.user
     following = Follow.objects.filter(user=user, author=author)
