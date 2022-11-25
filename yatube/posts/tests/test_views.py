@@ -198,7 +198,7 @@ class PostURLTests(TestCase):
     def test_profile_follow(self):
         """Подписка на автора осуществляется успешно."""
         follower_cnt = Follow.objects.count()
-        self.authorized_client.get(
+        self.authorized_client.post(
             reverse(
                 'posts:profile_follow',
                 kwargs={'username': self.post.author}
@@ -208,14 +208,14 @@ class PostURLTests(TestCase):
 
     def test_profile_unfollow(self):
         """Отписка на автора осуществляется успешно."""
-        self.authorized_client.get(
+        self.authorized_client.post(
             reverse(
                 'posts:profile_follow',
                 kwargs={'username': self.post.author}
             )
         )
         follower_cnt = Follow.objects.count()
-        self.authorized_client.get(
+        self.authorized_client.post(
             reverse(
                 'posts:profile_unfollow',
                 kwargs={'username': self.post.author}

@@ -25,21 +25,19 @@ class CacheIndexTest(TestCase):
     def setUp(self) -> None:
         self.authorized_author = Client()
         self.authorized_author.force_login(self.author_post)
+        cache.clear()
 
     def test_cache_index(self):
         """Записи страницы index кэшируются успешно."""
         response = self.authorized_author.get(reverse('posts:index'))
         cache_with_post = response.content
-        print(cache.get('index_page'))
-        Post.objects.get(id=1).delete()
+        Post.objects.get(id=self.post.id).delete()
         response = self.authorized_author.get(reverse('posts:index'))
-        after_del_post = response.content
+        self.assertEqual(cache_with_post, response.content, "Кэш не работает.")
         cache.clear()
         response = self.authorized_author.get(reverse('posts:index'))
-        after_clear_cache = response.content
-        self.assertEqual(cache_with_post, after_del_post, "Кэш не работает.")
         self.assertNotEqual(
-            after_del_post,
-            after_clear_cache,
+            cache_with_post,
+            response.content,
             "Очистка кэша не сработала."
         )
