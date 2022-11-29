@@ -82,7 +82,7 @@ def post_edit(request, post_id):
         return render(
             request,
             template,
-            context={'form': form, 'post': post}
+            context={'form': form, 'post': post, 'is_edit': is_edit}
         )
     form = PostForm()
     context = {
@@ -114,7 +114,8 @@ def post_create(request):
                     kwargs={'username': author.username}
                 )
             )
-        return render(request, template, context={'form': form})
+        context = {'form': form, 'is_edit': is_edit}
+        return render(request, template, context)
     form = PostForm()
     context = {
         'form': form,
