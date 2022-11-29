@@ -92,26 +92,26 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_post_edit_page_shows_correct_context(self):
-        """Шаблон post_edit сформирован с правильным контекстом.""" 
-        response = self.authorized_author.get( 
-            reverse( 
-                'posts:post_edit', 
-                kwargs={'post_id': self.post.pk} 
-            ) 
-        ) 
+        """Шаблон post_edit сформирован с правильным контекстом."""
+        response = self.authorized_author.get(
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': self.post.pk}
+            )
+        )
 
-        form_fields = { 
-            'text': forms.fields.CharField, 
-            'group': forms.fields.ChoiceField, 
-            'image': forms.fields.ImageField 
-        } 
+        form_fields = {
+            'text': forms.fields.CharField,
+            'group': forms.fields.ChoiceField,
+            'image': forms.fields.ImageField
+        }
 
-        for value, expected in form_fields.items(): 
-            with self.subTest(value=value): 
-                form_field = response.context.get('form').fields.get(value) 
-                self.assertIsInstance(form_field, expected) 
+        for value, expected in form_fields.items():
+            with self.subTest(value=value):
+                form_field = response.context.get('form').fields.get(value)
+                self.assertIsInstance(form_field, expected)
 
-    def test_create_page_shows_correct_context(self): 
+    def test_create_page_shows_correct_context(self):
         """Шаблон create сформирован с правильным контекстом."""
         response = self.authorized_author.get(
             reverse(
@@ -120,9 +120,9 @@ class PostURLTests(TestCase):
         )
 
         form_fields = {
-            'text': forms.fields.CharField, 
-            'group': forms.fields.ChoiceField, 
-            'image': forms.fields.ImageField 
+            'text': forms.fields.CharField,
+            'group': forms.fields.ChoiceField,
+            'image': forms.fields.ImageField
         }
 
         for value, expected in form_fields.items():
