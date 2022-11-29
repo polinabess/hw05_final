@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
 from ..models import Post, Group
@@ -33,51 +33,28 @@ class PaginatorViewsTest(TestCase):
             )
         Post.objects.bulk_create(posts_list)
 
-    def test_first_page_contains_ten_records(self):
-        response = self.client.get(reverse('posts:index'))
-        # Проверка: количество постов на первой странице равно POSTS_ON_PAGE.
-        self.assertEqual(len(response.context['page_obj']), POSTS_ON_PAGE)
+    def setUp(self) -> None:
+        self.unauthorized_client = Client()
 
-    def test_second_page_contains_three_records(self):
-        # Проверка: на второй странице должно быть три поста.
-        response = self.client.get(reverse('posts:index') + '?page=2')
-        self.assertEqual(
-            len(response.context['page_obj']),
-            AMOUNT_POSTS - POSTS_ON_PAGE
+    def test_pages_contain_records(self):
+        """Проверка количества записей на странице."""
+        pages = (
+            (1, POSTS_ON_PAGE),
+            (2, AMOUNT_POSTS - POSTS_ON_PAGE)
         )
+        urls = (
+            ('posts:index', {}),
+            ('posts:profile', {'username': self.author_post.username}),
+            ('posts:group_list', {'slug': self.group.slug}))
+        for url, kwargs in urls:
+            for page, count in pages:
+                with self.subTest(url=url):
+                    response = self.unauthorized_client.get(
+                        reverse(url, kwargs=kwargs),
+                        {'page': page}
+                    )
 
-    def test_first_page_contains_ten_records(self):
-        response = self.client.get(reverse('posts:profile'))
-        # Проверка: количество постов на первой странице равно 10.
-        self.assertEqual(len(response.context['page_obj']), POSTS_ON_PAGE)
-
-    def test_second_page_contains_three_records(self):
-        # Проверка: на второй странице должно быть три поста.
-        response = self.client.get(reverse('posts:profile') + '?page=2')
-        self.assertEqual(
-            len(response.context['page_obj']),
-            AMOUNT_POSTS - POSTS_ON_PAGE
-        )
-
-    def test_first_page_contains_ten_records(self):
-        response = self.client.get(
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': self.group.slug}
-            )
-        )
-        # Проверка: количество постов на первой странице равно 10.
-        self.assertEqual(len(response.context['page_obj']), POSTS_ON_PAGE)
-
-    def test_second_page_contains_three_records(self):
-        # Проверка: на второй странице должно быть три поста.
-        response = self.client.get(
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': self.group.slug}
-            ) + '?page=2'
-        )
-        self.assertEqual(
-            len(response.context['page_obj']),
-            AMOUNT_POSTS - POSTS_ON_PAGE
-        )
+                    self.assertEqual(
+                        len(response.context.get('page_obj')),
+                        count
+                    )

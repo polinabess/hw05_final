@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from django import forms
 from django.conf import settings
 
+from ..forms import PostForm
 from ..models import Post, Group, Follow
 
 User = get_user_model()
@@ -92,50 +92,47 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_post_edit_page_shows_correct_context(self):
-        """Шаблон post_edit сформирован с правильным контекстом."""
-        response = self.authorized_author.get(
-            reverse(
-                'posts:post_edit',
-                kwargs={'post_id': self.post.pk}
+        """Шаблоны post_edit и create сформированs с правильным контекстом."""
+        urls = (
+            (False, reverse('posts:post_create')),
+            (
+                True,
+                reverse(
+                    'posts:post_edit',
+                    kwargs={'post_id': self.post.pk}
+                )
             )
         )
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-            'image': forms.fields.ImageField
-        }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
 
-    def test_create_page_shows_correct_context(self):
-        """Шаблон create сформирован с правильным контекстом."""
-        response = self.authorized_author.get(
-            reverse(
-                'posts:post_create'
-            )
-        )
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-            'image': forms.fields.ImageField
-        }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
+        for is_edit_value, url in urls:
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
+
+                self.assertIn('form', response.context)
+                self.assertIsInstance(response.context['form'], PostForm)
+
+                self.assertIn('is_edit', response.context)
+                is_edit = response.context['is_edit']
+                self.assertIsInstance(is_edit, bool)
+                self.assertEqual(is_edit, is_edit_value)
+
+    def check_context_contains_page_or_post(self, context, post=False):
+        if post:
+            self.assertIn('post', context)
+            post = context['post']
+        else:
+            self.assertIn('page_obj', context)
+            post = context['page_obj'][0]
+        self.assertEqual(post.author, self.post.author)
+        self.assertEqual(post.pub_date, self.post.pub_date)
+        self.assertEqual(post.text, self.post.text)
+        self.assertEqual(post.group, self.post.group)
 
     def test_index_page_shows_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
-        response = self.authorized_author.get(reverse('posts:index'))
-        first_object = response.context['page_obj'][0]
-        post_author_0 = first_object.author
-        post_text_0 = first_object.text
-        post_image_0 = first_object.image
-        self.assertEqual(post_author_0, self.post.author)
-        self.assertEqual(post_text_0, 'Тестовый пост')
-        self.assertTrue(post_image_0)
+        response = self.guest_client.get(reverse('posts:index'))
+        self.check_context_contains_page_or_post(response.context)
+        self.assertTrue(response.context['page_obj'][0].image)
 
     def test_group_list_page_shows_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -146,13 +143,8 @@ class PostURLTests(TestCase):
                 kwargs={'slug': slug}
             )
         )
-        first_object = response.context['page_obj'][0]
-        post_author_0 = first_object.author
-        post_text_0 = first_object.text
-        post_image_0 = first_object.image
-        self.assertEqual(post_author_0, self.post.author)
-        self.assertEqual(post_text_0, 'Тестовый пост')
-        self.assertTrue(post_image_0)
+        self.check_context_contains_page_or_post(response.context)
+        self.assertTrue(response.context['page_obj'][0].image)
 
     def test_profile_page_shows_correct_context(self):
         """Шаблон profile_page сформирован с правильным контекстом."""
@@ -162,13 +154,10 @@ class PostURLTests(TestCase):
                 kwargs={'username': self.author_post.username}
             )
         )
-        first_object = response.context['page_obj'][0]
-        post_author_0 = first_object.author
-        post_text_0 = first_object.text
-        post_image_0 = first_object.image
-        self.assertTrue(post_image_0)
-        self.assertEqual(post_author_0, self.post.author)
-        self.assertEqual(post_text_0, 'Тестовый пост')
+        self.check_context_contains_page_or_post(response.context)
+        self.assertIn('context', response.context)
+        self.assertEqual(response.context['context'], self.post.author)
+        self.assertTrue(response.context['page_obj'][0].image)
 
     def test_post_detail_page_shows_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -178,11 +167,9 @@ class PostURLTests(TestCase):
                 kwargs={'post_id': self.post.pk}
             )
         )
-        context_post = response.context['post']
-        self.assertEqual(context_post.group, self.post.group)
-        self.assertEqual(context_post.text, 'Тестовый пост')
-        self.assertEqual(context_post.author, self.post.author)
-        self.assertTrue(context_post.image)
+        self.check_context_contains_page_or_post(response.context, post=True)
+        self.assertIn('context', response.context)
+        self.assertEqual(response.context['context'], self.post.author)
 
     def test_post_not_in_group(self):
         """Пост не попадает в другую группу."""

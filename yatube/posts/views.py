@@ -52,6 +52,7 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     author_posts = post.author.author_of_posts.count()
     context = {
+        'context': post.author,
         'post': post,
         'author_posts': author_posts,
         'form': CommentForm(),
@@ -97,6 +98,7 @@ def post_edit(request, post_id):
 def post_create(request):
     template = 'posts/create_post.html'
     author = request.user
+    is_edit = False
     if request.method == 'POST':
         form = PostForm(
             request.POST or None,
@@ -115,7 +117,8 @@ def post_create(request):
         return render(request, template, context={'form': form})
     form = PostForm()
     context = {
-        'form': form
+        'form': form,
+        'is_edit': is_edit
     }
     return render(request, template, context)
 
