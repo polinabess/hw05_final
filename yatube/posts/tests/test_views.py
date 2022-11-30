@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from ..forms import PostForm
-# from django import forms
+from http import HTTPStatus
 from ..models import Post, Group, Follow
 
 User = get_user_model()
@@ -110,7 +110,7 @@ class PostURLTests(TestCase):
                 response = self.authorized_author.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], PostForm)
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
                 self.assertIn('is_edit', response.context)
                 is_edit = response.context['is_edit']

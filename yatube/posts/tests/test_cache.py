@@ -29,9 +29,13 @@ class CacheIndexTest(TestCase):
 
     def test_cache_index(self):
         """Записи страницы index кэшируются успешно."""
+        Post.objects.create(
+            author=self.author_post,
+            text='Тестовый пост 2'
+        )
         response = self.authorized_author.get(reverse('posts:index'))
         cache_with_post = response.content
-        Post.objects.get(id=self.post.id).delete()
+        Post.objects.all()[0].delete()
         response = self.authorized_author.get(reverse('posts:index'))
         self.assertEqual(cache_with_post, response.content, "Кэш не работает.")
         cache.clear()
