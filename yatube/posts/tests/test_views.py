@@ -7,7 +7,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.conf import settings
 
-from django import forms
+from ..forms import PostForm
+# from django import forms
 from ..models import Post, Group, Follow
 
 User = get_user_model()
@@ -91,44 +92,30 @@ class PostURLTests(TestCase):
                 response = self.authorized_author.get(page)
                 self.assertTemplateUsed(response, template)
 
-    def test_post_edit_page_shows_correct_context(self):
-        """Шаблон post_edit сформирован с правильным контекстом."""
-        response = self.authorized_author.get(
-            reverse(
-                'posts:post_edit',
-                kwargs={'post_id': self.post.pk}
+    def test_create_and_edit_pages_context(self):
+        """Шаблоны сформированы с правильным контекстом."""
+        urls = (
+            (False, reverse('posts:post_create')),
+            (
+                True,
+                reverse(
+                    'posts:post_edit',
+                    kwargs={'post_id': self.post.pk}
+                )
             )
         )
 
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-            'image': forms.fields.ImageField
-        }
+        for is_edit_value, url in urls:
+            with self.subTest(url=url):
+                response = self.authorized_author.get(url)
+                self.assertIn('form', response.context)
+                self.assertIsInstance(response.context['form'], PostForm)
+                self.assertEqual(response.status_code, 200)
 
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
-
-    def test_create_page_shows_correct_context(self):
-        """Шаблон create сформирован с правильным контекстом."""
-        response = self.authorized_author.get(
-            reverse(
-                'posts:post_create'
-            )
-        )
-
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-            'image': forms.fields.ImageField
-        }
-
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
+                self.assertIn('is_edit', response.context)
+                is_edit = response.context['is_edit']
+                self.assertIsInstance(is_edit, bool)
+                self.assertEqual(is_edit, is_edit_value)
 
     def check_context_contains_page_or_post(self, context, post=False):
         if post:
